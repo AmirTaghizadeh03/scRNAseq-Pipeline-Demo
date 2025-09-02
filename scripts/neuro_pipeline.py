@@ -3,33 +3,31 @@
 import os
 import scanpy as sc
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
+
+# -------------------------------
+# Use safe backend for saving plots
+# -------------------------------
+matplotlib.use('Agg')
 
 # -------------------------------
 # Project paths
 # -------------------------------
-project_root = os.path.dirname(os.path.dirname(__file__))  # One level above scripts/
+project_root = os.path.dirname(os.path.dirname(__file__))
 raw_dir = os.path.join(project_root, "data", "raw")
 processed_dir = os.path.join(project_root, "data", "processed")
 figures_dir = os.path.join(project_root, "figures")
 
-# Create directories if they don't exist
 os.makedirs(raw_dir, exist_ok=True)
 os.makedirs(processed_dir, exist_ok=True)
 os.makedirs(figures_dir, exist_ok=True)
 
 # -------------------------------
-# Load PBMC3k dataset
+# Load PBMC3k sample dataset
 # -------------------------------
-raw_file = os.path.join(raw_dir, "pbmc3k_raw.h5ad")
-if os.path.exists(raw_file):
-    print("Loading PBMC3k from raw folder...")
-    adata = sc.read_h5ad(raw_file)
-else:
-    print("Downloading PBMC3k dataset from Scanpy...")
-    adata = sc.datasets.pbmc3k()
-    adata.write(raw_file)  # Save raw dataset
-    print(f"PBMC3k raw dataset saved → {raw_file}")
+print("Loading sample PBMC3k dataset...")
+adata = sc.datasets.pbmc3k()
 
 # -------------------------------
 # Preprocess data
@@ -59,7 +57,7 @@ sc.tl.leiden(adata, resolution=0.5)
 # Plot UMAP clusters
 # -------------------------------
 umap_clusters_path = os.path.join(figures_dir, "umap_clusters.png")
-sc.pl.umap(adata, color=["leiden"], show=True)
+sc.pl.umap(adata, color=["leiden"], show=False)
 plt.savefig(umap_clusters_path, dpi=150)
 plt.close()
 print(f"UMAP clusters plot saved → {umap_clusters_path}")
@@ -71,7 +69,7 @@ print("Finding marker genes...")
 sc.tl.rank_genes_groups(adata, 'leiden', method='t-test')
 
 marker_plot_path = os.path.join(figures_dir, "marker_genes.png")
-sc.pl.rank_genes_groups(adata, n_genes=5, sharey=False, show=True)
+sc.pl.rank_genes_groups(adata, n_genes=5, sharey=False, show=False)
 plt.savefig(marker_plot_path, dpi=150)
 plt.close()
 print(f"Marker genes plot saved → {marker_plot_path}")
@@ -92,7 +90,7 @@ existing_genes = [gene for gene in marker_genes if gene in adata.var_names]
 
 if existing_genes:
     multi_marker_plot_path = os.path.join(figures_dir, "umap_multi_marker.png")
-    sc.pl.umap(adata, color=existing_genes, wspace=0.4, show=True)
+    sc.pl.umap(adata, color=existing_genes, wspace=0.4, show=False)
     plt.savefig(multi_marker_plot_path, dpi=150)
     plt.close()
     print(f"UMAP multi-marker plot saved → {multi_marker_plot_path}")
@@ -111,10 +109,10 @@ else:
 if existing_genes:
     violin_path = os.path.join(figures_dir, "violin_plot.png")
     dotplot_path = os.path.join(figures_dir, "dotplot.png")
-    sc.pl.violin(adata, keys=existing_genes, groupby='leiden', rotation=45, show=True)
+    sc.pl.violin(adata, keys=existing_genes, groupby='leiden', rotation=45, show=False)
     plt.savefig(violin_path, dpi=150)
     plt.close()
-    sc.pl.dotplot(adata, var_names=existing_genes, groupby='leiden', show=True)
+    sc.pl.dotplot(adata, var_names=existing_genes, groupby='leiden', show=False)
     plt.savefig(dotplot_path, dpi=150)
     plt.close()
     print(f"Violin and Dot plots saved → {violin_path}, {dotplot_path}")
